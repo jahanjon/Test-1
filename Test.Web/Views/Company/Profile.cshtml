@@ -1,0 +1,369 @@
+﻿@using FindJobs.Domain.Dtos
+@using FindJobs.Domain.Global
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.Extensions.Configuration
+@using System.Globalization;
+@using System.Threading;
+@using System.Web;
+@model CompanyDto
+@inject IConfiguration configure
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+
+@section Css
+    {
+    <link rel="stylesheet" href="/dcss/internal/company-profile/@ViewData["DarkColor"]~@ViewData["LightColor"]" />
+    <link rel="stylesheet" href="/dcss/internal/company/@ViewData["DarkColor"]~@ViewData["LightColor"]" />
+    <link rel="stylesheet" href="~/css/internal/intl-tel-input.css" />
+    <link rel="stylesheet" href="~/css/internal/iconSide.css" />
+
+
+
+    <style>
+        .vscomp-value {
+            color: black !important;
+        }
+
+    </style>
+}
+@{
+
+    List<string> NumberOfCompany = new List<string> { "1-10", "10-50", "50-100", "150-200", "200-300", "300-400", "400-600", "600-800", "1000-1500", "1500-2000", "+2000" };
+
+}
+<div class="container-menu-company">
+    <nav class="nav-menu-company" style="display:none;">
+        <a class="company-menu" id="lnkOffer" href="@Url.Action("Dashbord", "Company")">
+            <div class="icon-side dashboard-icon"></div>
+            <span class="tooltip">@Res.Menu.Dashboard</span>
+        </a>
+        <a class="company-menu" id="lnkPub" href="@Url.Action("Profile", "Company")">
+            <div class="icon-side profile-icon"></div>
+            <span class="tooltip">@Res.Menu.MyProfile</span>
+        </a>
+        <a class="company-menu" id="lnkRev" href='@Url.Action("AddJobOffer", "Company")'>
+            <div class="icon-side offer-icon"></div>
+            <span class="tooltip">@Res.CompanyProfile.AddJobOffer</span>
+        </a>
+        <a class="company-menu" id="lnkPay" href="@Url.Action("ApplicantList", "Company")">
+            <div class="icon-side findApplicant-icon"></div>
+            <span class="tooltip">@Res.CompanyProfile.FindApplicant</span>
+        </a>
+        <a class="company-menu" id="lnkPay" href="@Url.Action("FavoriteList", "Company")">
+            <div class="icon-side favorites-icon"></div>
+            <span class="tooltip">@Res.Menu.Favorites</span>
+        </a>
+        <a class="company-menu" id="lnkPay" href="@Url.Action("Trash", "Company")">
+            <div class="icon-side trash-icon"></div>
+            <span class="tooltip">@Res.Menu.RemovedDocument</span>
+        </a>
+        <a class="company-menu" href="/@Thread.CurrentThread.CurrentCulture.Name.ToString()/WebAuth/LogOut">
+            <div class="icon-side logout-icon"></div>
+            <span class="tooltip">@Res.Menu.Logout</span>
+        </a>
+    </nav>
+</div>
+<div class="container">
+
+    <div id="company-profile">
+
+        <div class="detailsbox">
+            <details open>
+                <summary>@Res.CompanyProfile.Company_Profile</summary>
+                <fieldset>
+                    <legend class="companyProfileLegend">@Res.CompanyProfile.CompanyData</legend>
+                    <table class="companyProfiletable">
+                        <tbody>
+                            <tr class="companyProfiletable-custom-td company-profile-mobile">
+                                <td>
+                                    <div class="profile-flex-container">
+                                        <input hidden id="IdCompany" asp-for="@Model.Id" value="@Model.Id" />
+                                        <div class="box fix-height">
+                                            <label class="required mg-left"> @Res.CompanyProfile.Company</label>
+                                            <input id="name" required autocomplete="off" value="@Model.Name" class="input" placeholder="@Res.CompanyProfile.Company" type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class=" mg-left"> @Res.CompanyProfile.CompanyRegistration</label>
+                                            <input id="company-registration-id" autocomplete="off" class="input validation-input" value="@Model.CompanyRegistrationId" placeholder="@Res.CompanyProfile.CompanyRegistration" type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class=" mg-left"> @Res.CompanyProfile.VatNumber</label>
+                                            <input id="vat-number" autocomplete="off" class="input validation-input" value="@Model.VatNumber" placeholder="@Res.CompanyProfile.VatNumber"  type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class=" mg-left"> @Res.CompanyProfile.TaxNumber</label>
+                                            <input id="tax-number" autocomplete="off" class="input validation-input" value="@Model.TaxNumber" placeholder="@Res.CompanyProfile.TaxNumber" type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="companyProfiletable-custom-td standar-mg-top company-profile-mobile">
+                                <td>
+                                    <div class="profile-flex-container">
+                                        <div class="box fix-height">
+                                            <label class=" mg-left"> @Res.CompanyProfile.CompanyLogo</label>
+                                            <input id="image-logo" class="input" type="file" accept="image/*" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="tooltip-delete">
+                                        <button id="delete-image-btn" onclick="deleteImage()">×</button>
+                                    </div>
+                                    <div class="profile-flex-container-img profile-flex-container-img-height">
+                                        <div class="image-container">
+                                            @if (Model.Logo != null)
+                                            {
+                                                <label id="img-logo-label"></label>
+                                                <div id="img-logo" class="fit-image" style="background-image:url(@Url.Action("ProfileLogo", "Company", new { id = Model.Id }))"></div>
+                                            }
+                                            else
+                                            {
+                                                <label id="img-logo-label"></label>
+                                                <div class="fit-image" id="img-logo" style="background-image:url(@Url.Action("ProfileLogo", "Company", new { id = Model.Id }))"></div>
+                                            }
+                                         
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </fieldset>
+
+                <fieldset>
+                    <legend class="companyProfileLegend">@Res.CompanyProfile.BusinessAddress</legend>
+                    <table class="companyProfiletable">
+                        <tbody>
+                            <tr class="companyProfiletable-custom-td company-profile-mobile">
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class="required mg-left"> @Res.CompanyProfile.Address</label>
+                                            <input id="address" required class="input" value="@Model.Address" placeholder="@Res.CompanyProfile.Street" type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class="required mg-left"> @Res.CompanyProfile.PostalCode</label>
+                                            <input id="postal-code" required autocomplete="off" class="input" value="@Model.PostalCode" placeholder="@Res.CompanyProfile.PostalCode" type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class="mg-left"> @Res.CompanyProfile.Website</label>
+                                            <input id="web-site" class="input" type="url" value="@Model.WebSite" placeholder="@Res.CompanyProfile.Website" />
+                                        </div>
+                                    </div>
+                                </td>
+
+                            </tr>
+                            <tr class="companyProfiletable-custom-td standar-mg-top company-profile-mobile">
+                                <td>
+                                    <div class="profile-flex-container">
+                                        <div class="box fix-height">
+                                            <label class="required mg-left">@Res.ApplicantProfile.Country</label>
+                                            <div>
+                                                <div required class="dropdown-box" id="country"></div>
+                                            </div>
+
+                                        </div>
+                                        <div class="box fix-height" id="stateContainer">
+                                            <label class="required mg-left">@Res.ApplicantProfile.State</label>
+                                            <div>
+                                                <div required class="dropdown-box" id="state"></div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+                                        <div class="box fix-height" id="cityContainer">
+                                            <label class="required mg-left">@Res.ApplicantProfile.City</label>
+                                            <div>
+                                                <div required class="dropdown-box" name="ContactCity" id="city" placeholder="@Res.ApplicantProfile.Cities"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class="required phoneSize mg-left">@Res.CompanyProfile.Phone</label>
+                                            <input class="input contact-phone" required id="contact-phone" autocomplete="off" maxlength="15" value="@Model.ContactPersonPhone" placeholder="@Res.CompanyProfile.Phone" type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </fieldset>
+                <fieldset>
+                    <legend class="companyProfileLegend">@Res.CompanyProfile.ContactPerson</legend>
+                    <table class="companyProfiletable">
+                        <tbody>
+                            <tr class="companyProfiletable-custom-td standar-mg-top company-profile-mobile">
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class="required mg-left">@Res.CompanyProfile.FirstName</label>
+                                            <input id="first-name" required value="@Model.FirstName" class="input" placeholder="@Res.CompanyProfile.FirstName" type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class="required mg-left">@Res.CompanyProfile.LastName</label>
+                                            <input id="last-name" required value="@Model.LastName" class="input" placeholder="@Res.CompanyProfile.LastName" type="text" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class="required mg-left">@Res.CompanyProfile.Email</label>
+                                            <input id="contact-person-email" required value="@Model.ContactPersonEmail" class="input company-email" placeholder="@Res.CompanyProfile.Email" type="email" />
+                                        </div>
+                                    </div>
+                                </td>
+
+                            </tr>
+
+
+                            <tr class="companyProfiletable-custom-td standar-mg-top company-profile-mobile">
+                                <td>
+                                    <div class="profile-flex-container">
+
+                                        <div class="box fix-height">
+                                            <label class="mg-left">@Res.CompanyProfile.NumberOfEmployees</label>
+
+                                            <select id="number-of-employees" selected="@Model.NumberOfEmployees" class="custom-select">
+                                                @foreach (var item in NumberOfCompany)
+                                                {
+                                                    @if (item == Model.NumberOfEmployees)
+                                                    {
+                                                        <option value="@item" selected="selected">@item</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@item">@item</option>
+                                                    }
+                                                }
+
+                                            </select>
+                                        </div>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </fieldset>
+                <fieldset>
+                    <legend class="companyProfileLegend">@Res.CompanyProfile.AdditionalInformation</legend>
+                    <table class="companyProfiletable-aboutCompany">
+                        <tbody>
+                            <tr class="companyProfiletable-aboutCompany-custom-td company-profile-mobile">
+                                <td>
+                                    <div class="profile-flex-container-aboutCompany">
+                                        <div class="box height-auto">
+                                            <label class="mg-left">@Res.CompanyProfile.AboutCompany:</label>
+                                            <textarea id="about-company" type="text" placeholder="@Res.CompanyProfile.AboutCompany">@Model.AboutCompany</textarea>
+                                        </div>
+                                    </div>
+                                </td>
+
+                            </tr>
+                            <tr class="center">
+                                <td>
+                                    <div class="profile-flex-container-btnSave">
+                                        <div class="box">
+                                            <input onclick="saveCompany('@Res.CompanyProfile.UpdateSuccessfully.Replace("'","\\'")','@Res.CompanyProfile.NotUpdate.Replace("'","\\'")')" type="button" class="submit-btn" id="company-save-button" value="@Res.CompanyProfile.Save">
+                                        </div>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </fieldset>
+                <div class="profile-flex-container-top-btn" display="none">
+                    <div class="box">
+                        <button onclick="scrollToTop()" class="scroll-top-btn" id="scroll-top-btn">↑</button>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+</div>
+
+
+
+@{
+    var urlCountry = Url.Action("GetCountry", "Shared");
+    var stateUrl = Url.Action("GetStates", "Shared");
+    var cityUrl = Url.Action("GetCities", "Shared");
+    var cityStateUrl = Url.Action("GetCitiesByState", "Shared");
+    var currentPage = "profile";
+    var imageLogo = "/images/DefaultCompanyImage.webp";
+    var phonePrefix = Url.Action("GetLocationPhonePrefix", "Shared");
+    var dashboard = @Url.Action("Dashbord", "Company");
+    var profile = @Url.Action("Profile", "Company");
+    var addJobOffer = @Url.Action("AddJobOffer", "Company");
+    var findApplicant = @Url.Action("ApplicantList", "Company");
+    var deleteUserImage = @Url.Action("DeleteUserImage", "Company");
+    var redirectUrlAddJobOffer = @Url.Action("AddJobOffer", "Company");
+
+
+}
+
+
+@section Script{
+
+    <script src="~/js/layout-lazy/MessageShow.js"></script>
+    <script src="~/djs/internal/redirect/~@Res.Messages.ErrorProfile"></script>
+    <script src="~/js/internal/dropdown_select.min.js"></script>
+
+
+    <script src="~/js/internal/intlTelInput.js"></script>
+
+    <script src="/djs/internal/company/~Res.Validation.RequireFeild~@Res.Validation.notMatch~@Res.Validation.validPhone~@currentPage~@HttpUtility.UrlEncode(phonePrefix)~@HttpUtility.UrlEncode(dashboard)~@HttpUtility.UrlEncode(profile)~@HttpUtility.UrlEncode(addJobOffer)~@HttpUtility.UrlEncode(findApplicant)~@Res.CompanyProfile.validationInput~@Res.CompanyProfile.websiteAddress~@HttpUtility.UrlEncode(imageLogo)~@HttpUtility.UrlEncode(redirectUrlAddJobOffer)~@HttpUtility.UrlEncode(deleteUserImage)"></script>
+    <script src="~/djs/internal/countrycitystate/~@HttpUtility.UrlEncode(urlCountry)~@HttpUtility.UrlEncode(stateUrl)~@HttpUtility.UrlEncode(cityUrl)~@HttpUtility.UrlEncode(cityStateUrl)~1"></script>
+    <script src="/djs/internal/validations/~@Res.Validation.RequireFeild~@Res.Messages.selectCheckBox~@Res.Validation.validPhone~@Res.Validation.validEmail"></script>
+
+    <script>
+        countryCityState.init('@Model.CountryName', '@Model.CityName', '@Model.StateName');
+
+    </script>
+
+
+  
+}
